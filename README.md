@@ -1,10 +1,17 @@
 # BQ25895 Driver Library
 
+[![CI Status](https://github.com/Pixel-Theater/BQ25895-Driver/actions/workflows/ci.yml/badge.svg)](https://github.com/Pixel-Theater/BQ25895-Driver/actions/workflows/ci.yml)
+[![Teensy 4.1](https://img.shields.io/badge/Teensy%204.1-✅%20Tested-green)](https://github.com/Pixel-Theater/BQ25895-Driver/actions/workflows/ci.yml)
+[![ESP32](https://img.shields.io/badge/ESP32-✅%20Tested-green)](https://github.com/Pixel-Theater/BQ25895-Driver/actions/workflows/ci.yml) 
+[![RP2040](https://img.shields.io/badge/RP2040-✅%20Tested-green)](https://github.com/Pixel-Theater/BQ25895-Driver/actions/workflows/ci.yml)
+[![PlatformIO](https://img.shields.io/badge/PlatformIO-Compatible-blue)](https://platformio.org/)
+[![Arduino IDE](https://img.shields.io/badge/Arduino%20IDE-Compatible-blue)](https://arduino.cc/)
+
 A C language library for the Texas Instruments BQ25895 Li-Ion battery management IC. This library is designed for integration into projects which require power usage and recharging capability, multiple inputs, and handling one or more lithium-ion batteries. It includes the ability to monitor power status and provide user feedback through the UI about charging, discharging, and power sources.
 
 ## Background
 
-This driver interface was developed for the [Pixel Theater](https://github.com/PixelTheater) LED sculptures and related batter-powered project PCBs, and later extracted into a standalone oepn-source library. The BQ25895 chip has some subtle but important implementation details that are not obvious when first designing a circuit. For instance, it supports a thermistor which is optional, but if it's not there, you have to get the voltage levels right. It provides a step-down output using PMID and USB OTG boost mode, but at the same time it can handle higher voltages while providing pass-through capability, which could be damaging to circuits downstream.
+This driver interface was developed for the [Pixel Theater](https://github.com/Pixel-Theater) LED sculptures and related batter-powered project PCBs, and later extracted into a standalone oepn-source library. The BQ25895 chip has some subtle but important implementation details that are not obvious when first designing a circuit. For instance, it supports a thermistor which is optional, but if it's not there, you have to get the voltage levels right. It provides a step-down output using PMID and USB OTG boost mode, but at the same time it can handle higher voltages while providing pass-through capability, which could be damaging to circuits downstream.
 
 We looked for other libraries and found that Adafruit supports a lesser version of this chip, but it's quite different and much simpler. There were a few projects that supported this chip, but the examples and documentation were very lightweight, or the platform usage was not clear. This library attempts to really cover all the bases with this BQ IC.
 
@@ -223,7 +230,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 - GitHub Issues: Report bugs and request features
-- Organization: [Pixel Theater](https://github.com/PixelTheater)
+- Organization: [Pixel Theater](https://github.com/Pixel-Theater)
 - code author Jeremy Seitz [website](https://somebox.com)
 
 ---
