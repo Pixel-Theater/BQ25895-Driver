@@ -14,7 +14,12 @@ extern unsigned long millis();
 #include <math.h>
 #define DEBUG_PRINT(x) Serial.print(x)
 #define DEBUG_PRINTLN(x) Serial.println(x)
-#define DEBUG_PRINTF(fmt, ...) Serial.printf(fmt, __VA_ARGS__)
+// Portable printf for Arduino platforms - some don't have Serial.printf
+#define DEBUG_PRINTF(fmt, ...) do { \
+    char debug_buffer[256]; \
+    snprintf(debug_buffer, sizeof(debug_buffer), fmt, __VA_ARGS__); \
+    Serial.print(debug_buffer); \
+} while(0)
 #define PLATFORM_DELAY(ms) delay(ms)
 #define HEX 16
 #else

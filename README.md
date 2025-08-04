@@ -10,31 +10,31 @@ We looked for other libraries and found that Adafruit supports a lesser version 
 
 ## Features
 
-**Core functionality** - mapping of all BQ25895 registers with high-level control methods
+- **Core functionality** - mapping of all BQ25895 registers with high-level control methods
 
-**I2C managed via Adafruit BusIO** - using the industry-standard library for robust communication across platforms
+- **I2C managed via Adafruit BusIO** - using the industry-standard library for robust communication across platforms
 
-**Real-time monitoring** - voltage, current, and fault status with automatic updates
+- **Real-time monitoring** - voltage, current, and fault status with automatic updates
 
-**Safety protection** - configurable voltage thresholds, thermal monitoring, and emergency shutdown
+- **Safety protection** - configurable voltage thresholds, thermal monitoring, and emergency shutdown
 
-**Power management** - VBUS detection, power source switching, and ship mode support
+- **Power management** - VBUS detection, power source switching, and ship mode support
 
-**Error handling** - detailed error reporting with automatic retry mechanisms
+- **Error handling** - detailed error reporting with automatic retry mechanisms
 
-**Voltage safety protection** - automatic shutdown at configurable voltage thresholds for LED protection
+- **Voltage safety protection** - automatic shutdown at configurable voltage thresholds for LED protection
 
-**Fault diagnosis** - detailed fault decoding and reporting with clear status messages
+- **Fault diagnosis** - detailed fault decoding and reporting with clear status messages
 
-**Charge optimization** - DPM override, current limit adjustments, and charge restart functionality
+- **Charge optimization** - DPM override, current limit adjustments, and charge restart functionality
 
-**Emergency modes** - battery-only mode and ship mode for low-power applications
+- **Emergency modes** - battery-only mode and ship mode for low-power applications
 
-**Diagnostics** - register dumps, status reports, and voltage analysis for troubleshooting
+- **Diagnostics** - register dumps, status reports, and voltage analysis for troubleshooting
 
 ## Hardware
 
-Supported for Arduino IDE and PlatformIO on various microcontrollers such as Arduino Uno, Nano, ESP32, ESP8266, and Teensy 4.0/4.1. Most of the work on this driver was done in a Teensy environment, but it shouldn't matter because it's I2C-based.
+Supported for Arduino IDE and PlatformIO on modern microcontrollers such as Teensy 4.0/4.1, ESP32, ESP8266, and Raspberry Pi Pico (RP2040). Most of the work on this driver was done in a Teensy environment, but it works on any platform with sufficient memory and I2C support.
 
 ### I2C Configuration
 
@@ -150,7 +150,7 @@ if (!charger.setChargeCurrent(1500)) {
 
 ## Integration Examples
 
-### Arduino Uno/Nano
+### Raspberry Pi Pico (RP2040)
 
 ```cpp
 #include <Wire.h>
@@ -159,6 +159,11 @@ if (!charger.setChargeCurrent(1500)) {
 
 Adafruit_I2CDevice i2c_dev(BQ25895_I2C_ADDR, &Wire);  // Use default Wire
 BQ25895Driver charger(&i2c_dev);
+
+void setup() {
+    Wire.begin();  // Default I2C pins (GP4=SDA, GP5=SCL)
+    // ... rest of setup
+}
 ```
 
 ### Teensy 4.x (Recommended)

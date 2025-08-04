@@ -35,11 +35,11 @@ jobs:
         echo "Testing Teensy 4.1..."
         pio run -e teensy41
         
-        echo "Testing Arduino Uno..."
-        pio run -e arduino_uno
-        
         echo "Testing ESP32..."
         pio run -e esp32dev
+        
+        echo "Testing RP2040..."
+        pio run -e pico
 
   library-check:
     runs-on: ubuntu-latest
