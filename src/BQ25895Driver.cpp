@@ -11,7 +11,7 @@ extern unsigned long millis();
 
 #if defined(ARDUINO)
 #include <Arduino.h>
-#include <cmath>
+#include <math.h>
 #define DEBUG_PRINT(x) Serial.print(x)
 #define DEBUG_PRINTLN(x) Serial.println(x)
 #define DEBUG_PRINTF(fmt, ...) Serial.printf(fmt, __VA_ARGS__)
