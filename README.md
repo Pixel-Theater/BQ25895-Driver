@@ -1,33 +1,43 @@
 # BQ25895 Driver Library
 
-A comprehensive, platform-independent Arduino library for the Texas Instruments BQ25895 Li-Ion Battery Charge Management IC. This library provides high-level control, comprehensive status monitoring, and safety features for battery charging applications.
+A C language library for the Texas Instruments BQ25895 Li-Ion battery management IC. This library is designed for integration into projects which require power usage and recharging capability, multiple inputs, and handling one or more lithium-ion batteries. It includes the ability to monitor power status and provide user feedback through the UI about charging, discharging, and power sources.
+
+## Background
+
+This driver interface was developed for the [Pixel Theater](https://github.com/PixelTheater) LED sculptures and related batter-powered project PCBs, and later extracted into a standalone oepn-source library. The BQ25895 chip has some subtle but important implementation details that are not obvious when first designing a circuit. For instance, it supports a thermistor which is optional, but if it's not there, you have to get the voltage levels right. It provides a step-down output using PMID and USB OTG boost mode, but at the same time it can handle higher voltages while providing pass-through capability, which could be damaging to circuits downstream.
+
+We looked for other libraries and found that Adafruit supports a lesser version of this chip, but it's quite different and much simpler. There were a few projects that supported this chip, but the examples and documentation were very lightweight, or the platform usage was not clear. This library attempts to really cover all the bases with this BQ IC.
 
 ## Features
 
-### Core Functionality
-- **Complete Register Access**: Full control over all BQ25895 registers and features
-- **Hardware Abstraction**: Platform-independent I2C interface with Arduino implementation
-- **Comprehensive Status Monitoring**: Real-time voltage, current, and fault monitoring
-- **Safety Features**: Voltage protection, thermal monitoring, and emergency shutdown
-- **Power Management**: VBUS detection, power source switching, and ship mode support
-- **Robust Error Handling**: Detailed error reporting and automatic retry mechanisms
+**Core functionality** - mapping of all BQ25895 registers with high-level control methods
 
-### Advanced Features
-- **Voltage Safety Protection**: Automatic shutdown at configurable voltage thresholds (default 5.5V for LED protection)
-- **Power Transition Detection**: Automatic handling of USB connect/disconnect scenarios
-- **Fault Diagnosis**: Detailed fault decoding and reporting
-- **Charge Optimization**: DPM override, current limit adjustments, and charge restart
-- **Emergency Modes**: Battery-only mode and ship mode for low-power applications
-- **Comprehensive Diagnostics**: Register dumps, status reports, and voltage analysis
+**I2C managed via Adafruit BusIO** - using the industry-standard library for robust communication across platforms
 
-## Hardware Requirements
+**Real-time monitoring** - voltage, current, and fault status with automatic updates
 
-### Supported Platforms
-- **Arduino Compatible Devices**: Arduino Uno, Nano, ESP32, ESP8266
-- **Teensy Microcontrollers**: Teensy 4.0, 4.1 (primary target)
-- **Custom Hardware**: Any microcontroller with I2C support
+**Safety protection** - configurable voltage thresholds, thermal monitoring, and emergency shutdown
+
+**Power management** - VBUS detection, power source switching, and ship mode support
+
+**Error handling** - detailed error reporting with automatic retry mechanisms
+
+**Voltage safety protection** - automatic shutdown at configurable voltage thresholds for LED protection
+
+**Fault diagnosis** - detailed fault decoding and reporting with clear status messages
+
+**Charge optimization** - DPM override, current limit adjustments, and charge restart functionality
+
+**Emergency modes** - battery-only mode and ship mode for low-power applications
+
+**Diagnostics** - register dumps, status reports, and voltage analysis for troubleshooting
+
+## Hardware
+
+Supported for Arduino IDE and PlatformIO on various microcontrollers such as Arduino Uno, Nano, ESP32, ESP8266, and Teensy 4.0/4.1. Most of the work on this driver was done in a Teensy environment, but it shouldn't matter because it's I2C-based.
 
 ### I2C Configuration
+
 - **Default Address**: 0x6A (fixed for BQ25895)
 - **Clock Speed**: 100kHz (recommended for reliability)
 - **Pull-up Resistors**: 4.7kΩ required on SDA/SCL lines
@@ -36,6 +46,7 @@ A comprehensive, platform-independent Arduino library for the Texas Instruments 
 ## Quick Start
 
 ### Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/[org]/BQ25895Driver.git
@@ -48,175 +59,34 @@ lib_deps = https://github.com/[org]/BQ25895Driver.git
 ```
 
 ### Basic Usage
+
 ```cpp
 #include <Wire.h>
 #include <Adafruit_I2CDevice.h>
 #include "BQ25895Driver.h"
 
-// Create I2C device and driver (using industry-standard Adafruit BusIO)
-Adafruit_I2CDevice i2c_dev(BQ25895_I2C_ADDR, &Wire1);  // Use Wire1 for Teensy
+Adafruit_I2CDevice i2c_dev(BQ25895_I2C_ADDR, &Wire1);
 BQ25895Driver charger(&i2c_dev);
 
 void setup() {
-    Serial.begin(115200);
     Wire1.begin();
-    Wire1.setClock(100000);  // 100kHz for reliability
-    
-    // Configure for Li-Ion battery
-    BQ25895Config config;
-    config.inputCurrentMA = 1500;      // 1.5A input limit
-    config.chargeCurrentMA = 1000;     // 1A charge current
-    config.chargeVoltageNV = 4192;     // 4.192V (safe for 4.16V batteries)
-    config.terminationCurrentMA = 64;  // 64mA termination
-    config.vindpmThresholdMV = 4400;   // 4.4V VINDPM
-    
-    // Initialize the charger
-    if (charger.initialize(config)) {
-        Serial.println("BQ25895 initialized successfully");
-        charger.enableCharging();
-    } else {
-        Serial.printf("Initialization failed: %s\n", charger.getLastError().c_str());
-    }
-}
-
-void loop() {
-    // Get current status and metrics
-    BQ25895Status status = charger.getStatus();
-    BQ25895Metrics metrics = charger.getMetrics();
-    
-    // Check for faults
-    if (status.faultRegister != 0) {
-        Serial.printf("Fault detected: %s\n", charger.decodeFaults(status.faultRegister).c_str());
-    }
-    
-    // Print status
-    Serial.printf("Charging: %s, VBAT: %.2fV, Current: %dmA\n",
-                  status.chargingEnabled ? "YES" : "NO",
-                  metrics.batteryVoltage / 1000.0,
-                  metrics.chargeCurrentMA);
-    
-    delay(1000);
+    BQ25895Config config = BQ25895ConfigPresets::PortableDevice();
+    charger.initialize(config);
+    charger.enableCharging();
 }
 ```
 
-### Advanced Configuration
-```cpp
-// Configure for external VIN operation (≤5.5V for LED safety)
-BQ25895Config config;
-config.inputCurrentMA = 2000;      // Higher current for external supply
-config.chargeCurrentMA = 1500;     // Faster charging
-config.chargeVoltageNV = 4208;     // Higher voltage for full capacity
-config.vindpmThresholdMV = 4600;   // Higher VINDPM for 6V+ supplies
-config.disableWatchdog = true;     // Disable I2C watchdog
-config.disableSafetyTimer = false; // Keep safety timer for production
+See the [examples](examples/) directory for complete working examples.
 
-// Voltage safety for LED applications
-charger.initialize(config);
-charger.enableCharging();
+## Configuration and Status
 
-// Monitor voltage safety
-if (!charger.checkVoltageSafety()) {
-    Serial.println("EMERGENCY: Voltage too high for LEDs!");
-    // System automatically enters protective mode
-}
-```
-
-## API Reference
-
-### Core Classes
-
-#### `BQ25895Driver`
-Main driver class providing complete BQ25895 control.
-
-**Key Methods:**
-```cpp
-// Initialization
-bool initialize(const BQ25895Config& config);
-bool isInitialized() const;
-void reset();
-
-// Status and Monitoring
-BQ25895Status getStatus();
-BQ25895Metrics getMetrics();
-VBusType getVBusType();
-
-// Charging Control
-bool enableCharging();
-bool disableCharging();
-bool setChargeCurrent(uint16_t currentMA);
-bool setInputCurrentLimit(uint16_t currentMA);
-bool setChargeVoltage(uint16_t voltageMV);
-
-// Safety and Emergency
-bool checkVoltageSafety();
-bool forceEmergencyShutdown();
-bool enterShipMode();
-
-// Diagnostics
-String getFaultStatusReport();
-String getPowerStatusSummary();
-String getRegisterDiagnostics();
-```
-
-#### `BQ25895Config`
-Configuration structure for charger initialization.
-```cpp
-struct BQ25895Config {
-    uint16_t inputCurrentMA = 1500;      // Input current limit
-    uint16_t chargeCurrentMA = 2000;     // Charge current
-    uint16_t chargeVoltageNV = 4208;     // Charge voltage (mV)
-    uint16_t terminationCurrentMA = 128; // Termination current
-    uint16_t vindpmThresholdMV = 3900;   // VINDPM threshold
-    bool disableWatchdog = true;         // I2C watchdog control
-    bool disableSafetyTimer = true;      // Safety timer control
-};
-```
-
-#### `BQ25895Status` & `BQ25895Metrics`
-Comprehensive status and measurement structures.
-```cpp
-struct BQ25895Status {
-    VBusType vbusType;
-    ChargeStatus chargeStatus;
-    bool chargingEnabled;
-    bool inputDetected;
-    bool batteryDetected;
-    uint8_t faultRegister;
-    String lastError;
-    unsigned long timestamp;
-};
-
-struct BQ25895Metrics {
-    uint16_t batteryVoltage;    // mV
-    uint16_t systemVoltage;     // mV  
-    uint16_t inputVoltage;      // mV
-    int16_t chargeCurrentMA;    // mA
-    uint16_t tsVoltage;         // mV (thermistor)
-    unsigned long timestamp;
-};
-```
-
-### I2C Hardware Abstraction
-
-#### `Adafruit_I2CDevice`
-Using the industry-standard [Adafruit BusIO](https://github.com/adafruit/Adafruit_BusIO) library for robust I2C communication.
-```cpp
-#include <Adafruit_I2CDevice.h>
-
-Adafruit_I2CDevice i2c_dev(BQ25895_I2C_ADDR, &Wire1);  // Use specific Wire interface
-BQ25895Driver driver(&i2c_dev);
-```
-
-**Benefits of Adafruit BusIO:**
-- ✅ Battle-tested by thousands of users
-- ✅ Superior error handling and retry logic  
-- ✅ Better platform compatibility
-- ✅ Maintained by Adafruit team
+The library provides status and metrics structures that are used to get information from the BQ25895. The `BQ25895Status` structure contains charging state, fault information, and VBUS detection. The `BQ25895Metrics` structure provides voltage and current measurements. Both can be retrieved using the driver's `getStatus()` and `getMetrics()` methods. See the [examples](examples/) for detailed usage.
 
 ## Safety Features
 
 ### Voltage Protection
-The library includes automatic voltage monitoring to protect connected components (especially LEDs):
+
+Automatic voltage monitoring to protect connected components (especially LEDs):
 
 ```cpp
 // Automatic voltage safety checking
@@ -232,7 +102,9 @@ if (charger.isInEmergencyMode()) {
 ```
 
 ### Thermal Protection
+
 Built-in thermal monitoring with NTC thermistor support:
+
 ```cpp
 BQ25895Metrics metrics = charger.getMetrics();
 if (metrics.tsVoltage < 2400 || metrics.tsVoltage > 3700) {
@@ -241,7 +113,9 @@ if (metrics.tsVoltage < 2400 || metrics.tsVoltage > 3700) {
 ```
 
 ### Fault Detection
+
 Comprehensive fault monitoring and reporting:
+
 ```cpp
 uint8_t faults = charger.getFaultRegister();
 if (faults != 0) {
@@ -254,6 +128,7 @@ if (faults != 0) {
 ## Debugging and Diagnostics
 
 ### Register Diagnostics
+
 ```cpp
 // Full register dump for debugging
 Serial.print(charger.getRegisterDiagnostics());
@@ -266,6 +141,7 @@ Serial.print(charger.getPowerStatusSummary());
 ```
 
 ### Error Handling
+
 ```cpp
 if (!charger.setChargeCurrent(1500)) {
     Serial.printf("Failed to set charge current: %s\n", charger.getLastError().c_str());
@@ -275,6 +151,7 @@ if (!charger.setChargeCurrent(1500)) {
 ## Integration Examples
 
 ### Arduino Uno/Nano
+
 ```cpp
 #include <Wire.h>
 #include <Adafruit_I2CDevice.h>
@@ -285,6 +162,7 @@ BQ25895Driver charger(&i2c_dev);
 ```
 
 ### Teensy 4.x (Recommended)
+
 ```cpp
 #include <Wire.h>
 #include <Adafruit_I2CDevice.h>
@@ -295,6 +173,7 @@ BQ25895Driver charger(&i2c_dev);
 ```
 
 ### ESP32
+
 ```cpp
 #include <Wire.h>
 #include <Adafruit_I2CDevice.h>
@@ -310,44 +189,11 @@ void setup() {
 }
 ```
 
-## Refactoring from Application Code
+## Reference Schematic
 
-### Changes Required for Standalone Library
+Here is the relevant schematic for the BQ25895 driver that was used to develop this library.
 
-1. **Remove Application-Specific Constants**
-   - Move voltage limits to configurable parameters
-   - Remove LED-specific safety hardcoding
-   - Make emergency thresholds configurable
-
-2. **Enhance Hardware Abstraction** 
-   - Add more I2C interface implementations
-   - Support different Wire interfaces more flexibly
-   - Add platform detection and optimization
-
-3. **Configuration Improvements**
-   - Add preset configurations for common applications
-   - Battery chemistry profiles (Li-Ion, LiFePO4, etc.)
-   - Application-specific profiles (LED drivers, portable devices, etc.)
-
-4. **Documentation and Examples**
-   - Platform-specific examples
-   - Integration guides for different hardware
-   - Advanced configuration examples
-
-### Removed from main.cpp Integration
-The following application-specific code will be moved to the main application:
-- LED control and animation logic
-- Button handling and user interface
-- Status display and logging formatting
-- Application-specific state machines
-- Power management policies specific to the product
-
-### New Dependencies for main.cpp
-After refactoring, main.cpp will:
-- Use the library as a clean dependency
-- Implement application-specific logic in the main file
-- Handle battery detection using BatterySystem library
-- Manage LED safety through library's voltage monitoring
+![BQ25895 Schematic](docs/example-schematic-bq25895.png)
 
 ## Contributing
 
@@ -359,7 +205,7 @@ After refactoring, main.cpp will:
 
 ## License
 
-[License details to be determined]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Version History
 
@@ -372,9 +218,9 @@ After refactoring, main.cpp will:
 ## Support
 
 - GitHub Issues: Report bugs and request features
-- Documentation: Full API reference and examples
-- Community: Platform-specific integration help
+- Organization: [Pixel Theater](https://github.com/PixelTheater)
+- code author Jeremy Seitz [website](https://somebox.com)
 
 ---
 
-This library is designed for professional battery charging applications requiring robust control, comprehensive monitoring, and safety features. It provides the foundation for building reliable battery-powered devices across multiple platforms.
+**Note:** This library is intended for hobbyist projects and DIY applications, not for professional battery charging systems. It was co-developed using AI (Gemini/Claude) with a lot of testing and trial and error.
