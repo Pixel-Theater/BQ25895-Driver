@@ -1,0 +1,45 @@
+{
+  "name": "BQ25895 Driver",
+  "version": "1.0.0",
+  "description": "Comprehensive driver for TI BQ25895 Li-Ion battery charge management IC with hardware abstraction, safety features, and robust error handling. Supports Arduino, Teensy, ESP32, and other compatible microcontrollers.",
+  "keywords": [
+    "bq25895",
+    "battery",
+    "charger",
+    "power management",
+    "li-ion",
+    "teensy",
+    "arduino",
+    "esp32"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PixelTheater/BQ25895-Driver.git"
+  },
+  "authors": [
+    {
+      "name": "Jeremy Seitz",
+      "email": "jeremy@pixeltheater.com",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/PixelTheater/BQ25895-Driver",
+  "dependencies": {
+    "adafruit/Adafruit BusIO": "^1.17.0"
+  },
+  "frameworks": ["arduino"],
+  "platforms": ["atmelavr", "atmelsam", "espressif32", "teensy", "ststm32"],
+  "build": {
+    "includeDir": "src"
+  },
+  "export": {
+    "include": [
+      "src/*",
+      "examples/*",
+      "*.md",
+      "*.txt",
+      "library.properties"
+    ]
+  }
+}

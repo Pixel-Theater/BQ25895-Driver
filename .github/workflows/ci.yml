@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install PlatformIO Core
+      run: pip install --upgrade platformio
+    
+    - name: Run Unit Tests
+      run: pio test -e native_test --verbose
+    
+    - name: Test Library Integration
+      run: |
+        echo "Testing library integration..."
+        cd examples/PlatformIO_Basic
+        
+        echo "Testing Teensy 4.1..."
+        pio run -e teensy41
+        
+        echo "Testing Arduino Uno..."
+        pio run -e arduino_uno
+        
+        echo "Testing ESP32..."
+        pio run -e esp32dev
+
+  library-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+    
+    - name: Install PlatformIO Core
+      run: pip install --upgrade platformio
+    
+    - name: Check Library Structure
+      run: |
+        pio lib install --global file://.
+        pio lib show "BQ25895 Driver"
+    
+    - name: Validate Arduino IDE Compatibility  
+      run: |
+        echo "Checking Arduino examples syntax..."
+        # Basic syntax validation - ensure .ino files are well-formed
+        cd examples/BasicUsage
+        if ! grep -q "void setup()" BasicUsage.ino; then
+          echo "Error: BasicUsage.ino missing setup() function"
+          exit 1
+        fi
+        
+        cd ../LEDDriverExample  
+        if ! grep -q "void setup()" LEDDriverExample.ino; then
+          echo "Error: LEDDriverExample.ino missing setup() function"
+          exit 1
+        fi
+        
+        echo "✅ Arduino examples are well-formed"
