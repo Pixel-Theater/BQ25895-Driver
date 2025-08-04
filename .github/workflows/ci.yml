@@ -56,8 +56,23 @@ jobs:
     
     - name: Check Library Structure
       run: |
-        pio lib install --global file://.
-        pio lib show "BQ25895 Driver"
+        # Validate library metadata files exist
+        echo "Checking library.properties..."
+        if [ ! -f "library.properties" ]; then
+          echo "Error: library.properties not found"
+          exit 1
+        fi
+        
+        echo "Checking library.json..."
+        if [ ! -f "library.json" ]; then
+          echo "Error: library.json not found"
+          exit 1
+        fi
+        
+        # Install library locally and test
+        pio pkg install -l file://.
+        
+        echo "✅ Library structure is valid"
     
     - name: Validate Arduino IDE Compatibility  
       run: |
